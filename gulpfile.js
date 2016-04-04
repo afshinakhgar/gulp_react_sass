@@ -10,10 +10,11 @@ var autoprefixer = require('gulp-autoprefixer');
 var concat = require('gulp-concat');
 var buffer = require('vinyl-buffer');
 var gutil = require('gulp-util');
+var babelify = require('babelify');
 
 var del = require('del');
 var browserify = require('browserify');
-var reactify = require('reactify');
+// var reactify = require('reactify');
 // var run = require('gulp-run');
 var source = require('vinyl-source-stream');
 
@@ -45,14 +46,24 @@ gulp.task('build-js', function() {
 	gulp.src(resourceSrc+'js/*.js')
  	.pipe(gulp.dest(output+'js/app/application/src'))
  	// .pipe(gulp.dest(output+'js/app/application/run/general.js'))
-	.pipe(uglify())
+	// .pipe(uglify())
     .pipe(gulp.dest(dist_dir));
 });
 
+function reactCompile(sourcefile){
+   return browserify({
+    entries: sourcefile,
+	extensions: ['.js', '.jsx'],
+    debug: true
+  })
+  .transform('babelify', {presets: ['stage-1','es2015', 'react']})
+  .bundle()
+  ;
+
+}
+
 gulp.task('react',['build-js'], function() {
-	return browserify(resourceSrc+'js/app/app.js')
-	.transform(reactify)
-	.bundle()
+	return reactCompile(resourceSrc+'js/app/app.js')
 	.pipe(source(output+'js/app/src/app.js'))
 	.pipe(gulp.dest(dist_dir));
 });
@@ -69,11 +80,12 @@ gulp.task('react',['build-js'], function() {
 
 gulp.task('js',['react','build-js'], function() {
 	return gulp.src(output+'js/app/**/*.js')
-	.pipe(sourcemaps.init())
+	// .pipe(sourcemaps.init())
 	.pipe(concat('bundle.js'))
 	//only uglify if gulp is ran with '--type production'
-	.pipe(gutil.env.type === 'production' ? uglify() : gutil.noop()) 
-	.pipe(sourcemaps.write())
+	// .pipe(gutil.env.type === 'production' ? uglify() : gutil.noop()) 
+	// .pipe(sourcemaps.write())
+	.pipe(uglify())
 	.pipe(gulp.dest(output+'js/run'));
 });
 
@@ -109,6 +121,12 @@ gulp.task('css:min',['sass'], function() {
 gulp.task('watch',function(){
 	gulp.watch(resourceSrc+'sass/**/*.scss',['sass','js','clean']);
 });
+
+gulp.task('watch:js',function(){
+	gulp.watch(output+'js/app/**/*.js', ['js']);
+});
+
+
 gulp.task('build',['css:min','sass','js']);
 gulp.task('default',['css:min','sass','js']);
 // gulp.task('default',['sass']);
