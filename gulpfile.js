@@ -119,11 +119,7 @@ gulp.task('css:min',['sass'], function() {
 	);
 });
 gulp.task('watch',function(){
-	gulp.watch(resourceSrc+'sass/**/*.scss',['sass','js','clean']);
-});
-
-gulp.task('watch:js',function(){
-	gulp.watch(output+'js/app/**/*.js', ['js']);
+	gulp.watch(resourceSrc+'sass/**/*.scss',['sass','js']);
 });
 
 
